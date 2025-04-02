@@ -58,16 +58,17 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Colors.blue,
         title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.school, color: Colors.white),
-            const SizedBox(width: 10),
+            Image.asset('images/red_deer_logo.png', height: 55),
+            const SizedBox(width: 12),
             const Text(
               "Daily Planner",
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
                 fontStyle: FontStyle.italic,
-                color: Colors.white,
+                color: Colors.black,
               ),
             ),
           ],

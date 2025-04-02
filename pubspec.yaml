@@ -14,7 +14,7 @@ dependencies:
   firebase_auth: ^4.17.0
   cloud_firestore: ^4.15.0
   intl: ^0.18.1
-  table_calendar: ^3.0.9  # <- adicionado aqui
+  table_calendar: ^3.0.9  
 
 dev_dependencies:
   flutter_test:
@@ -23,3 +23,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - images/red_deer_logo.png
+    
