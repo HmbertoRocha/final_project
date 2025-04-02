@@ -13,15 +13,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // Controller for the input text field
   final TextEditingController _controller = TextEditingController();
+
+  // Selected date on calendar
   DateTime? _selectedDate;
+
+  // Currently focused date on calendar
   DateTime _focusedDay = DateTime.now();
 
+  // Gets the current logged-in user
   User? get user => FirebaseAuth.instance.currentUser;
 
+  // Reference to the 'tasks' collection in Firestore
   CollectionReference get tasksCollection =>
       FirebaseFirestore.instance.collection('tasks');
 
+  // Adds a new task to Firestore with the selected date
   void _addTask() {
     final title = _controller.text.trim();
     if (title.isNotEmpty && user != null && _selectedDate != null) {
@@ -32,22 +40,26 @@ class _HomePageState extends State<HomePage> {
         'date': _selectedDate,
       });
       _controller.clear();
+      FocusScope.of(context).unfocus(); // Dismisses the keyboard
       setState(() {
         _selectedDate = null;
       });
     }
   }
 
+  // Toggles the completion status of a task
   void _toggleDone(Task task) {
     tasksCollection.doc(task.id).update({'isDone': !task.isDone});
   }
 
+  // Deletes a task from Firestore
   void _deleteTask(Task task) {
     tasksCollection.doc(task.id).delete();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Displays a fallback screen if user is not logged in
     if (user == null) {
       return const Scaffold(
         body: Center(child: Text("User not authenticated")),
@@ -60,7 +72,7 @@ class _HomePageState extends State<HomePage> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('images/red_deer_logo.png', height: 55),
+            Image.asset('images/red_deer_logo.png', height: 90),
             const SizedBox(width: 12),
             const Text(
               "Daily Planner",
@@ -77,13 +89,14 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await FirebaseAuth.instance.signOut();
+              await FirebaseAuth.instance.signOut(); // Logs out the user
             },
           ),
         ],
       ),
       body: Column(
         children: [
+          // Calendar UI
           TableCalendar(
             firstDay: DateTime.utc(2020, 1, 1),
             lastDay: DateTime.utc(2030, 12, 31),
@@ -110,6 +123,8 @@ class _HomePageState extends State<HomePage> {
               titleCentered: true,
             ),
           ),
+
+          // Task list
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream:
@@ -167,11 +182,13 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Checkbox(
                               value: task.isDone,
-                              onChanged: (_) => _toggleDone(task),
+                              onChanged:
+                                  (_) => _toggleDone(task), // Toggles done
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete),
-                              onPressed: () => _deleteTask(task),
+                              onPressed:
+                                  () => _deleteTask(task), // Deletes task
                             ),
                           ],
                         ),
@@ -182,6 +199,8 @@ class _HomePageState extends State<HomePage> {
               },
             ),
           ),
+
+          // Input field and button
           Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
@@ -190,11 +209,12 @@ class _HomePageState extends State<HomePage> {
                 TextField(
                   controller: _controller,
                   maxLength: 20,
+                  autofocus: true, // Automatically opens keyboard on focus
                   decoration: InputDecoration(
                     hintText: 'Add To-Do List Item',
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.close),
-                      onPressed: () => _controller.clear(),
+                      onPressed: () => _controller.clear(), // Clears input
                     ),
                     border: const OutlineInputBorder(),
                   ),
@@ -221,7 +241,7 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _addTask,
+                    onPressed: _addTask, // Adds a new task
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                     ),

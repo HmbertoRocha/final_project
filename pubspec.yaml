@@ -1,28 +1,27 @@
 name: final_project
 description: "A new Flutter project."
-publish_to: 'none'
-version: 1.0.0+1
+publish_to: 'none' # Prevents publishing to pub.dev
+version: 1.0.0+1  # Version: major.minor+build
 
 environment:
-  sdk: ^3.7.0
+  sdk: ^3.7.0 # Specifies the Dart SDK version to use
 
 dependencies:
   flutter:
-    sdk: flutter
-  cupertino_icons: ^1.0.8
-  firebase_core: ^2.27.0
-  firebase_auth: ^4.17.0
-  cloud_firestore: ^4.15.0
-  intl: ^0.18.1
-  table_calendar: ^3.0.9  
+    sdk: flutter  # Main Flutter SDK
+  cupertino_icons: ^1.0.8 # iOS-style icons
+  firebase_core: ^2.27.0 # Required to initialize Firebase
+  firebase_auth: ^4.17.0 # Firebase Authentication
+  cloud_firestore: ^4.15.0 # Cloud Firestore for storing tasks
+  intl: ^0.18.1 # Date formatting and internationalization
+  table_calendar: ^3.0.9  # Calendar widget for selecting dates
 
 dev_dependencies:
   flutter_test:
-    sdk: flutter
-  flutter_lints: ^3.0.1
+    sdk: flutter  # For running Flutter tests
+  flutter_lints: ^3.0.1 # Recommended linter rules
 
 flutter:
-  uses-material-design: true
+  uses-material-design: true # Enables Material Design icons
   assets:
-    - images/red_deer_logo.png
-    
+    - images/red_deer_logo.png # Path to the logo image used in AppBar

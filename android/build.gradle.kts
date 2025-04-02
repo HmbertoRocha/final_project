@@ -1,6 +1,7 @@
+
 plugins {
-    // Adiciona o plugin do Google Services com a versão especificada pelo Firebase
-    id("com.google.gms.google-services") version "4.4.2" apply false
+    
+    id("com.google.gms.google-services") version "4.3.15" apply false
 }
 
 allprojects {
