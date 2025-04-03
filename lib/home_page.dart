@@ -74,8 +74,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Scaffold(
-      // Prevents keyboard overflow by resizing layout
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: true, // Prevents keyboard overflow
       appBar: AppBar(
         backgroundColor: Colors.blue,
         title: Row(
@@ -99,182 +98,176 @@ class _HomePageState extends State<HomePage> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () async {
-              await FirebaseAuth.instance.signOut(); // Logs out the user
+              await FirebaseAuth.instance.signOut();
             },
           ),
         ],
       ),
       body: SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom + 12,
-            left: 12,
-            right: 12,
-            top: 12,
-          ),
-          child: Column(
-            children: [
-              // Calendar widget to select date
-              TableCalendar(
-                firstDay: DateTime.utc(2020, 1, 1),
-                lastDay: DateTime.utc(2030, 12, 31),
-                focusedDay: _focusedDay,
-                selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
-                onDaySelected: (selectedDay, focusedDay) {
-                  setState(() {
-                    _selectedDate = selectedDay;
-                    _focusedDay = focusedDay;
-                  });
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+          left: 12,
+          right: 12,
+          top: 12,
+        ),
+        child: Column(
+          children: [
+            // Calendar widget to select date
+            TableCalendar(
+              firstDay: DateTime.utc(2020, 1, 1),
+              lastDay: DateTime.utc(2030, 12, 31),
+              focusedDay: _focusedDay,
+              selectedDayPredicate: (day) => isSameDay(_selectedDate, day),
+              onDaySelected: (selectedDay, focusedDay) {
+                setState(() {
+                  _selectedDate = selectedDay;
+                  _focusedDay = focusedDay;
+                });
+              },
+              calendarStyle: const CalendarStyle(
+                todayDecoration: BoxDecoration(
+                  color: Colors.blue,
+                  shape: BoxShape.circle,
+                ),
+                selectedDecoration: BoxDecoration(
+                  color: Colors.deepPurple,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              headerStyle: const HeaderStyle(
+                formatButtonVisible: false,
+                titleCentered: true,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Task list section
+            SizedBox(
+              height: 300, // Fixed height to allow space for keyboard
+              child: StreamBuilder<QuerySnapshot>(
+                stream:
+                    tasksCollection
+                        .where('uid', isEqualTo: user!.uid)
+                        .orderBy('date')
+                        .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const Center(child: Text('Error loading tasks'));
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final taskDocs = snapshot.data?.docs ?? [];
+                  final tasks =
+                      taskDocs
+                          .map(
+                            (doc) => Task.fromMap(
+                              doc.data() as Map<String, dynamic>,
+                              doc.id,
+                            ),
+                          )
+                          .toList();
+
+                  if (tasks.isEmpty) {
+                    return const Center(child: Text('No tasks yet.'));
+                  }
+
+                  return ListView.builder(
+                    itemCount: tasks.length,
+                    itemBuilder: (context, index) {
+                      final task = tasks[index];
+                      return Card(
+                        color:
+                            task.isDone ? Colors.green[100] : Colors.blue[100],
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 12.0,
+                          vertical: 6.0,
+                        ),
+                        child: ListTile(
+                          leading: Icon(
+                            task.isDone ? Icons.task_alt : Icons.sync,
+                          ),
+                          title: Text(
+                            task.title,
+                            style: TextStyle(
+                              decoration:
+                                  task.isDone
+                                      ? TextDecoration.lineThrough
+                                      : null,
+                            ),
+                          ),
+                          trailing: Wrap(
+                            spacing: 12,
+                            children: [
+                              Checkbox(
+                                value: task.isDone,
+                                onChanged: (_) => _toggleDone(task),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () => _deleteTask(task),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
                 },
-                calendarStyle: const CalendarStyle(
-                  todayDecoration: BoxDecoration(
-                    color: Colors.blue,
-                    shape: BoxShape.circle,
-                  ),
-                  selectedDecoration: BoxDecoration(
-                    color: Colors.deepPurple,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                headerStyle: const HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                ),
               ),
+            ),
 
-              const SizedBox(height: 12),
-
-              // Displays the list of tasks
-              SizedBox(
-                height: 300, // fixed height to avoid overflow
-                child: StreamBuilder<QuerySnapshot>(
-                  stream:
-                      tasksCollection
-                          .where('uid', isEqualTo: user!.uid)
-                          .orderBy('date')
-                          .snapshots(),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return const Center(child: Text('Error loading tasks'));
-                    }
-
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    final taskDocs = snapshot.data?.docs ?? [];
-                    final tasks =
-                        taskDocs
-                            .map(
-                              (doc) => Task.fromMap(
-                                doc.data() as Map<String, dynamic>,
-                                doc.id,
-                              ),
-                            )
-                            .toList();
-
-                    if (tasks.isEmpty) {
-                      return const Center(child: Text('No tasks yet.'));
-                    }
-
-                    return ListView.builder(
-                      itemCount: tasks.length,
-                      itemBuilder: (context, index) {
-                        final task = tasks[index];
-                        return Card(
-                          color:
-                              task.isDone
-                                  ? Colors.green[100]
-                                  : Colors.blue[100],
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 12.0,
-                            vertical: 6.0,
-                          ),
-                          child: ListTile(
-                            leading: Icon(
-                              task.isDone ? Icons.task_alt : Icons.sync,
-                            ),
-                            title: Text(
-                              task.title,
-                              style: TextStyle(
-                                decoration:
-                                    task.isDone
-                                        ? TextDecoration.lineThrough
-                                        : null,
-                              ),
-                            ),
-                            trailing: Wrap(
-                              spacing: 12,
-                              children: [
-                                // Toggle completion
-                                Checkbox(
-                                  value: task.isDone,
-                                  onChanged: (_) => _toggleDone(task),
-                                ),
-                                // Delete task
-                                IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () => _deleteTask(task),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
+            // Input for new task
+            const SizedBox(height: 12),
+            TextField(
+              controller: _controller,
+              maxLength: 20,
+              autofocus: true,
+              decoration: InputDecoration(
+                hintText: 'Add To-Do List Item',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => _controller.clear(),
                 ),
+                border: const OutlineInputBorder(),
               ),
-
-              // Text field to input new task
-              const SizedBox(height: 12),
-              TextField(
-                controller: _controller,
-                maxLength: 20,
-                autofocus: true, // Automatically opens keyboard on focus
-                decoration: InputDecoration(
-                  hintText: 'Add To-Do List Item',
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => _controller.clear(), // Clear text field
-                  ),
-                  border: const OutlineInputBorder(),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _selectedDate != null
+                      ? DateFormat.yMMMd().format(_selectedDate!)
+                      : 'No date selected',
+                  style: const TextStyle(fontSize: 14),
                 ),
-              ),
-
-              // Row showing selected date and calendar icon
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _selectedDate != null
-                        ? DateFormat.yMMMd().format(_selectedDate!)
-                        : 'No date selected',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.calendar_today),
-                    onPressed:
-                        () => setState(() {
-                          _selectedDate = DateTime.now();
-                        }),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 8),
-
-              // Button to add new task
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _addTask,
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                  child: const Text("Add To-Do Item"),
+                IconButton(
+                  icon: const Icon(Icons.calendar_today),
+                  onPressed:
+                      () => setState(() {
+                        _selectedDate = DateTime.now();
+                      }),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ],
+        ),
+      ),
+      // Button moved to bottomNavigationBar to prevent keyboard overflow
+      bottomNavigationBar: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom + 8,
+          left: 12,
+          right: 12,
+        ),
+        child: ElevatedButton(
+          onPressed: _addTask,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue,
+            minimumSize: const Size.fromHeight(50),
           ),
+          child: const Text("Add To-Do Item"),
         ),
       ),
     );
